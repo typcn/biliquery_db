@@ -98,9 +98,7 @@ void Responder::send_result(uint8_t *data, int len){
                 LOG(INFO) << it->first << " " << it->second;
                 pos += sprintf(resp_buf+pos, "{\"id\":%llu},",it->second);
             }
-            resp_buf[pos-1] = ']';
-            resp_buf[pos] = '}';
-            resp_buf[pos+1] = 0x0;
+            memcpy(resp_buf+pos-1,"]}\0",3);
             resp = resp_buf;
         }
     }else{
