@@ -106,5 +106,6 @@ void Responder::send_result(uint8_t *data, int len){
     }
     handler->send((uint8_t *)resp, strlen(resp));
     handler->shutdown();
+    free(data);
     return;
 }
