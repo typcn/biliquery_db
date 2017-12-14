@@ -75,14 +75,21 @@ void Responder::send_result(uint8_t *data, int len){
 
     // Step 2 , Convert request string
     int url_len = strlen(req);
-    if(url_len !=8){
+    if(url_len < 1){
         END("Request is not 32bit unsigned int");
     }
+    
+    uint8_t req_b[8];
+    memset(req_b,0x0,8);
+    for (int i = 0; i < url_len; i++) {
+        req_b[8-i] = req[url_len-i];
+    }
+    
     uint8_t ubuf[4];
-    ubuf[0] = (hexmap[req[0]] << 4) + hexmap[req[1]];
-    ubuf[1] = (hexmap[req[2]] << 4) + hexmap[req[3]];
-    ubuf[2] = (hexmap[req[4]] << 4) + hexmap[req[5]];
-    ubuf[3] = (hexmap[req[6]] << 4) + hexmap[req[7]];
+    ubuf[0] = (hexmap[req_b[0]] << 4) + hexmap[req_b[1]];
+    ubuf[1] = (hexmap[req_b[2]] << 4) + hexmap[req_b[3]];
+    ubuf[2] = (hexmap[req_b[4]] << 4) + hexmap[req_b[5]];
+    ubuf[3] = (hexmap[req_b[6]] << 4) + hexmap[req_b[7]];
 
     uint32_t requested_key = *(uint32_t *)&ubuf;
 
