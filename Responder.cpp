@@ -79,11 +79,8 @@ void Responder::send_result(uint8_t *data, int len){
         END("Request is not 32bit unsigned int");
     }
     
-    uint8_t req_b[8];
-    memset(req_b,0x0,8);
-    for (int i = 0; i < url_len; i++) {
-        req_b[8-i] = req[url_len-i];
-    }
+    uint8_t req_b[] = "00000000";
+    memcpy(req_b+(8-url_len),req,url_len);
     
     uint8_t ubuf[4];
     ubuf[0] = (hexmap[req_b[0]] << 4) + hexmap[req_b[1]];
