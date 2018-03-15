@@ -37,7 +37,7 @@ int main() {
                 uint32_t data = *(uint32_t *)(buffer+(i*4));
                 temp_map.insert(std::make_pair(data, keyseq));
             }
-            printf("Please wait... %llu\r",keyseq);
+            printf("Please wait... %lu\r",keyseq);
             fflush(stdout);
         }
         LOG(INFO) << "Import completed: " << keyseq << " items";
