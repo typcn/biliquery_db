@@ -53,20 +53,10 @@ void TCPServer::io_accept(ev::io &watcher, int revents) {
 TCPServer::TCPServer(){
 
     int fd;
-    struct ifreq ifr;
-    fd = socket(AF_INET, SOCK_DGRAM, 0);
-    ifr.ifr_addr.sa_family = AF_INET;
-    strncpy(ifr.ifr_name, "zt0", IFNAMSIZ-1);
-    ioctl(fd, SIOCGIFADDR, &ifr);
-    close(fd);
     
     sockaddr_in addr;
     addr.sin_family = AF_INET;
-#ifdef __APPLE__
-    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-#else
-    addr.sin_addr = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr;
-#endif
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port =  htons((unsigned short)6071);
     
     fd = socket(AF_INET, SOCK_STREAM, 0);
