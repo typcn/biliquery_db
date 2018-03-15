@@ -54,9 +54,7 @@ int main() {
                 fwrite(&uint32_min,4,1,db);
                 continue;
             }else if(count > 1){
-                LOG(INFO) << "Write four byte duplicate for " << i;
                 fwrite(&uint32_max,4,1,db);
-                continue;
             }
             auto its = temp_map.equal_range(i);
             for (auto it = its.first; it != its.second; ++it) {
