@@ -137,7 +137,7 @@ void Responder::send_result(uint8_t *data, int len){
             size_t wpos = strlen(resp_buf);
 
             while(1){
-                if(pos > dup_block_size/8){
+                if(pos >= dup_block_size/4){
                     break;
                 }
                 uint32_t crc32 = dup_block[pos];
