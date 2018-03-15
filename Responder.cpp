@@ -24,8 +24,11 @@
 #define MAX_URL_LEN 32
 #define HTTP_BANNER "Server: TYPCN-API\r\n"
 
-Responder::Responder(ConnHandler *hdl) : handler(hdl) {
 
+FILE *db_file;
+
+Responder::Responder(ConnHandler *hdl) : handler(hdl) {
+    db_file = fopen("data/biliquery.bin", "rb");
 }
 
 void Responder::print_error(const char *msg){
@@ -92,17 +95,25 @@ void Responder::send_result(uint8_t *data, int len){
 
     char *resp;
     if(requested_key > 0){
-        auto its = ids_map.equal_range(requested_key);
-        if(its.first == its.second){
+        fseek(db_file, requested_key*4 ,SEEK_SET);
+        uint32_t query_res;
+        fread(&query_res,4,1,db_file);
+        if(query_res == 0){
             resp = (char *)"HTTP/1.0 200 OK\r\n" HTTP_BANNER "\r\n{\"error\":1}";
-        }else{
+        }else if(query_res == 0xFFFFFFFF){
+            auto its = ids_map.equal_range(requested_key);
             char resp_buf[1024] = "HTTP/1.0 200 OK\r\n" HTTP_BANNER "\r\n{\"error\":0,\"data\":[";
             size_t pos = strlen(resp_buf);
             for (auto it = its.first; it != its.second; ++it) {
                 LOG(INFO) << it->first << " " << it->second;
-                pos += sprintf(resp_buf+pos, "{\"id\":%llu},",it->second);
+                pos += sprintf(resp_buf+pos, "{\"id\":%u},",it->second);
             }
             memcpy(resp_buf+pos-1,"]}\0",3);
+            resp = resp_buf;
+        }else{
+            char resp_buf[128];
+            const char *fmt = "HTTP/1.0 200 OK\r\n" HTTP_BANNER "\r\n{\"error\":0,\"data\":[{\"id\":%u}]}";
+            sprintf(resp_buf,fmt,query_res);
             resp = resp_buf;
         }
     }else{

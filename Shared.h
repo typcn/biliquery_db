@@ -11,7 +11,7 @@ public:
     }
 };
 
-typedef std::unordered_multimap<uint32_t, uint64_t, Hasher> DirectMap;
+typedef std::unordered_multimap<uint32_t, uint32_t, Hasher> DirectMap;
 
 extern DirectMap ids_map;
 

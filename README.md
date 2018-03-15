@@ -12,9 +12,7 @@ pacman -S libev
 make
 ./biliquery
 ```
-About 15GB RAM needed
-
-其实我好像有点傻逼了，数据量这么大直接连续内存 int32 大概就可以做到只要 5G 内存左右。。。速度还更快。。。不过懒得改了。。。
+大约只要 <10MB 的内存，在 SSD 上每秒大概可以承受几十万请求，当然也可以改成纯内存的能上千万，不过没啥意义。
 
 # API ( no sla, 300billon )
 
