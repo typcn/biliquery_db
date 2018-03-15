@@ -12,8 +12,11 @@
 #include <vector>
 #include <map>
 #include <dlfcn.h>
+#include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/ptrace.h>
+#include <sys/stat.h> 
+#include <fcntl.h>
 #include <sstream>
 #include <string.h>
 #include <execinfo.h>
@@ -25,10 +28,16 @@
 #define HTTP_BANNER "Server: TYPCN-API\r\n"
 
 
+uint32_t *dup_block;
+size_t dup_block_size;
 FILE *db_file;
 
 Responder::Responder(ConnHandler *hdl) : handler(hdl) {
     db_file = fopen("data/biliquery.bin", "rb");
+
+    int fd = open("data/duplicate.bin", O_RDONLY);
+    dup_block_size = lseek(fd, 0, SEEK_END);
+    dup_block = (uint32_t *)mmap(NULL,dup_block_size, PROT_READ, MAP_PRIVATE, fd, 0);
 }
 
 void Responder::print_error(const char *msg){
@@ -53,6 +62,22 @@ void Responder::print_error(const char *msg){
     handler->send((uint8_t *)st_text, strlen(st_text));
     free(strs);
 }
+
+int BinarySearch(uint32_t value){  
+    uint32_t len = dup_block_size/8;
+    uint32_t low = 0;  
+    uint32_t high = len - 1;  
+    while(low <= high){  
+        uint32_t mid = low + (high - low) / 2;  
+        if (dup_block[mid*2] == value)  
+            return mid*2;  
+        else if (dup_block[mid*2] > value)  
+            high = mid - 1;  
+        else  
+            low = mid + 1;  
+    }
+    return -1;  
+}  
 
 #define END(msg) print_error(msg);free(data);handler->shutdown();return;
 #define CUT free(data);handler->shutdown();return;
@@ -101,15 +126,31 @@ void Responder::send_result(uint8_t *data, int len){
         if(!nread || query_res == 0){
             resp = (char *)"HTTP/1.0 200 OK\r\n" HTTP_BANNER "\r\n{\"error\":1}";
         }else if(query_res == 0xFFFFFFFF){
-            auto its = ids_map.equal_range(requested_key);
-            char resp_buf[1024] = "HTTP/1.0 200 OK\r\n" HTTP_BANNER "\r\n{\"error\":0,\"data\":[";
-            size_t pos = strlen(resp_buf);
-            for (auto it = its.first; it != its.second; ++it) {
-                LOG(INFO) << it->first << " " << it->second;
-                pos += sprintf(resp_buf+pos, "{\"id\":%u},",it->second);
+
+            int pos = BinarySearch(requested_key);
+            if(pos == -1){
+                LOG(ERROR) << "Cannot search for key";
+                CUT;
             }
-            memcpy(resp_buf+pos-1,"]}\0",3);
+
+            char resp_buf[1024] = "HTTP/1.0 200 OK\r\n" HTTP_BANNER "\r\n{\"error\":0,\"data\":[";
+            size_t wpos = strlen(resp_buf);
+
+            while(1){
+                if(pos > dup_block_size/8){
+                    break;
+                }
+                uint32_t crc32 = dup_block[pos];
+                uint32_t uid = dup_block[pos+1];
+                if(crc32 != requested_key){
+                    break;
+                }
+                wpos += sprintf(resp_buf+wpos, "{\"id\":%u},",uid);
+                pos += 2;
+            }
+            memcpy(resp_buf+wpos-1,"]}\0",3);
             resp = resp_buf;
+
         }else{
             char resp_buf[128];
             const char *fmt = "HTTP/1.0 200 OK\r\n" HTTP_BANNER "\r\n{\"error\":0,\"data\":[{\"id\":%u}]}";

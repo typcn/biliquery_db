@@ -13,8 +13,6 @@ public:
 
 typedef std::unordered_multimap<uint32_t, uint32_t, Hasher> DirectMap;
 
-extern DirectMap ids_map;
-
 
 const uint8_t hexmap[] =
 {

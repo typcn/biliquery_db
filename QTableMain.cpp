@@ -19,8 +19,6 @@
 using namespace std;
 CREATE_LOGGER;
 
-DirectMap ids_map;
-
 int main() {
     INIT_LOGGER;
     FILE *file = fopen("data/biliquery.bin", "rb");
@@ -79,21 +77,6 @@ int main() {
         fclose(file);
     }
     
-
-    LOG(INFO) << "Trying to load duplicate database";
-
-    file = fopen("data/duplicate.bin", "rb");
-    char buffer[8];
-    uint64_t keyseq = 0;
-    while(fread(buffer, 8, 1, file)){
-        keyseq++;
-        uint32_t crc32 = *(uint32_t *)buffer;
-        uint32_t uid = *(uint32_t *)(buffer+4);
-        ids_map.insert(std::make_pair(crc32, uid));
-    }
-    LOG(INFO) << "Import completed: " << keyseq << " items";
-    fclose(file);
-
 #ifdef __APPLE__
     setenv("LIBEV_FLAGS", "8", 1);
 #endif
