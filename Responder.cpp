@@ -97,8 +97,8 @@ void Responder::send_result(uint8_t *data, int len){
     if(requested_key > 0){
         fseek(db_file, requested_key*4 ,SEEK_SET);
         uint32_t query_res;
-        fread(&query_res,4,1,db_file);
-        if(query_res == 0){
+        int nread = fread(&query_res,4,1,db_file);
+        if(!nread || query_res == 0){
             resp = (char *)"HTTP/1.0 200 OK\r\n" HTTP_BANNER "\r\n{\"error\":1}";
         }else if(query_res == 0xFFFFFFFF){
             auto its = ids_map.equal_range(requested_key);
