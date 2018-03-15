@@ -95,7 +95,7 @@ void Responder::send_result(uint8_t *data, int len){
 
     char *resp;
     if(requested_key > 0){
-        fseek(db_file, requested_key*4 ,SEEK_SET);
+        fseek(db_file, ((uint64_t)requested_key)*4 ,SEEK_SET);
         uint32_t query_res;
         int nread = fread(&query_res,4,1,db_file);
         if(!nread || query_res == 0){

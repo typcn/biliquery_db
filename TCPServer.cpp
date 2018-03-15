@@ -71,7 +71,7 @@ TCPServer::TCPServer(){
     }
     
     fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
-    listen(fd, 0);
+    listen(fd, 32);
     
     io.set<TCPServer, &TCPServer::io_accept>(this);
     io.start(fd, ev::READ);
