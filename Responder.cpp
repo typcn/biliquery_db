@@ -103,7 +103,7 @@ void Responder::send_result(uint8_t *data, int len){
 
     // Step 2 , Convert request string
     int url_len = strlen(req);
-    if(url_len < 1){
+    if(url_len < 1 || url_len > 8){
         END("Request is not 32bit unsigned int");
     }
     
