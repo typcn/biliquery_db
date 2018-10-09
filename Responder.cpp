@@ -31,10 +31,12 @@
 uint32_t *dup_block;
 size_t dup_block_size;
 FILE *db_file;
+size_t db_file_size;
 
 Responder::Responder(ConnHandler *hdl) : handler(hdl) {
     db_file = fopen("data/biliquery.bin", "rb");
-
+    db_file_size = lseek(fd, 0, SEEK_END);
+    
     int fd = open("data/duplicate.bin", O_RDONLY);
     dup_block_size = lseek(fd, 0, SEEK_END);
     dup_block = (uint32_t *)mmap(NULL,dup_block_size, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -120,6 +122,9 @@ void Responder::send_result(uint8_t *data, int len){
 
     char *resp;
     if(requested_key > 0){
+        if(((uint64_t)requested_key)*4 > db_file_size){
+            END("Request out of index");
+        }
         fseek(db_file, ((uint64_t)requested_key)*4 ,SEEK_SET);
         uint32_t query_res;
         int nread = fread(&query_res,4,1,db_file);
