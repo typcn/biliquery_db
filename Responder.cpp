@@ -35,7 +35,8 @@ size_t db_file_size;
 
 Responder::Responder(ConnHandler *hdl) : handler(hdl) {
     db_file = fopen("data/biliquery.bin", "rb");
-    db_file_size = lseek(db_file, 0, SEEK_END);
+    fseek(db_file, 0, SEEK_END);
+    db_file_size = ftell(db_file);
     
     int fd = open("data/duplicate.bin", O_RDONLY);
     dup_block_size = lseek(fd, 0, SEEK_END);
